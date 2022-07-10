@@ -219,10 +219,7 @@ class Evaluation(object):
             gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "gt_depths.npz")
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
 
-<<<<<<< HEAD
         ###########################################3 added code ########################################
-=======
->>>>>>> 50cd97a3fe4c55ebfee2ce2de78850e46a4b4168
         else:
             gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "data.npz")
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
