@@ -217,7 +217,7 @@ class Evaluation(object):
             # Eigen split - LIDAR data
             gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "gt_depths.npz")
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
-            
+
         ###########################################3 added code ########################################
         else:
             gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "data.npz")
@@ -272,10 +272,17 @@ class Evaluation(object):
                 gt_depth[gt_depth > self.opt.max_depth] = self.opt.max_depth
                 pred_depth[pred_depth < self.opt.min_depth] = self.opt.min_depth
                 pred_depth[pred_depth > self.opt.max_depth] = self.opt.max_depth
-
+                plat_gt_depth = gt_depth.reshape(-1)
+                plat_pred_depth = pred_depth.reshape(-1)
+                new_gt_depth = []
+                new_pred_depth = []
+                for idx, item in enumerate(plat_gt_depth):
+                    new_gt_depth.append(item)
+                    new_pred_depth.append(plat_pred_depth[idx])
+                
                 # pred_depth_t[pred_depth_t < self.opt.min_depth] = self.opt.min_depth
                 # pred_depth_t[pred_depth_t > self.opt.max_depth] = self.opt.max_depth
-
+                # errors_absolute.append(compute_errors(np.array(new_gt_depth), np.array(new_pred_depth)))
                 errors_absolute.append(compute_errors(gt_depth, pred_depth))
                 errors_absolute = np.array(errors_absolute).mean(0)
                 print("/n")
