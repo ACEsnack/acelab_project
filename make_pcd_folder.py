@@ -11,35 +11,46 @@ file_list.sort()
 total = len(file_list)
 
 
-# 기존 디렉터리가 있으면 지워주기
-if os.path.exists("10pcds"):
-    shutil.rmtree("10pcds")
+if os.path.exists("pcds_sort"):
+    shutil.rmtree("pcds_sort")
 
-# pcd 파일을 10개씩 담을 디렉터리 생성
-os.mkdir("10pcds")
-
-
-dir_count = 0  # 디렉터리 번호
-dir_fill = 0  # 디렉터리에 10개 찼는지 확인하기 위한 변수
+os.mkdir("pcds_sort")
 
 for i in range(total):
-    for j in range(3):
-        if(dir_fill == 0):  # 디렉터리가 텅 비어있으면 새 폴더 생성
-            os.mkdir("./10pcds/" + str(dir_count))
-        
-        if(dir_fill == 10): # 꽉 찼으면 중단
-            break
-        
-        shutil.copy(path_dir+"/"+file_list[i], "./10pcds/"+str(dir_count))
-        os.renames("./10pcds/"+str(dir_count)+"/"+file_list[i], "./10pcds/"+str(dir_count)+"/"+file_list[i]+str(dir_fill)+".pcd")
-        dir_fill += 1
-    
-        if(dir_fill == 10):
-            dir_fill = 0
-            dir_count += 1
-    
+    shutil.copy(path_dir+"/"+file_list[i], "./pcds_sort")
+    os.renames("./pcds_sort/"+file_list[i], "./pcds_sort/"+file_list[i]+str(i)+".pcd")
 
 
+# # 기존 디렉터리가 있으면 지워주기
+# if os.path.exists("10pcds"):
+#     shutil.rmtree("10pcds")
+
+
+# # pcd 파일을 10개씩 담을 디렉터리 생성
+# os.mkdir("10pcds")
+
+
+# dir_count = 0  # 디렉터리 번호
+# dir_fill = 0  # 디렉터리에 10개 찼는지 확인하기 위한 변수
+
+# for i in range(total):
+#     for j in range(3):
+#         if(dir_fill == 0):  # 디렉터리가 텅 비어있으면 새 폴더 생성
+#             os.mkdir("./10pcds/" + str(dir_count))
+        
+#         if(dir_fill == 10): # 꽉 찼으면 중단
+#             break
+        
+#         shutil.copy(path_dir+"/"+file_list[i], "./10pcds/"+str(dir_count))
+#         os.renames("./10pcds/"+str(dir_count)+"/"+file_list[i], "./10pcds/"+str(dir_count)+"/"+file_list[i]+str(dir_fill)+".pcd")
+#         dir_fill += 1
+    
+#         if(dir_fill == 10):
+#             dir_fill = 0
+#             dir_count += 1
+    
+
+# ============================
 
 # dir_c = 0
 # count = 0
