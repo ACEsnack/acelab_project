@@ -279,6 +279,7 @@ class Evaluation(object):
                 plat_pred_depth = pred_depth.reshape(-1)
                 new_gt_depth = []
                 new_pred_depth = []
+
                 hitmap = np.zeros((gt_height, gt_width, 3), dtype=np.uint8)
 
                 for idx, item in enumerate(plat_gt_depth):
