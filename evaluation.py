@@ -220,7 +220,7 @@ class Evaluation(object):
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
 
         else:
-            gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "data.npz")
+            gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "data_gt20.npz")
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
 
 
@@ -230,6 +230,8 @@ class Evaluation(object):
     def eval_any(self):
         errors_absolute, time_taken, time_for_each_frame, flops_for_each_frame, total_time = \
             [], time.time(), [], [], time.time()
+        start_time = time.time()
+        cnt = 0
         with torch.no_grad():
             for iter_l, im_path in tqdm(enumerate(self.im_path_list)):
                 try:
@@ -245,7 +247,7 @@ class Evaluation(object):
                 output = self.models["depth_decoder"](features)
                 time_taken -= time.time()
                 time_for_each_frame.append(np.abs(time_taken))
-
+                cnt += 1
                 # Convert disparity into depth maps
                 pred_disp = self.invdepth_to_depth(output[("disp", 0)])
                 pred_disp = pred_disp[0, 0].cpu().numpy()
@@ -278,12 +280,22 @@ class Evaluation(object):
 
                 # pred_depth_t[pred_depth_t < self.opt.min_depth] = self.opt.min_depth
                 # pred_depth_t[pred_depth_t > self.opt.max_depth] = self.opt.max_depth
+                plat_gt_depth = gt_depth.reshape(-1)
+                plat_pred_depth = pred_depth.reshape(-1)
 
-                errors_absolute.append(compute_errors(gt_depth, pred_depth))
-                errors_absolute = np.array(errors_absolute).mean(0)
-                print("/n")
-                print("  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
-                print(("&{: 8.4f}  " * 7).format(*errors_absolute.tolist()) + "\\\\")
+                new_gt_depth, new_pred_depth = [], []
+                hitmap = np.zeros((gt_height, gt_width, 3), dtype=np.uint8)
+                for idx, item in enumerate(plat_gt_depth):
+                    if item > 0.1 and item < 80:
+                        new_gt_depth.append(item)
+                        new_pred_depth.append(plat_pred_depth[idx])
+                        hitmap[idx//gt_width, idx % gt_width] = [255,255,255]
+
+
+                img = Image.fromarray(hitmap, 'RGB')
+                errors_absolute.append(compute_errors(np.array(new_gt_depth), np.array(new_pred_depth)))
+                #rrors_absolute.append(compute_errors(np.array(plat_gt_depth), np.array(plat_pred_depth)))
+                
                 ############################################################################################
 
 
@@ -296,16 +308,23 @@ class Evaluation(object):
                 pred_depth_o = Image.fromarray(np.array(F.interpolate(pred_depth_t,
                                                                       (height_o, width_o)).squeeze() * 256,
                                                         dtype=np.uint16))
-                pred_depth_color = Image.fromarray(np.array(turbo(F.interpolate(pred_depth_t,
-                                                                                (height_o, width_o),
-                                                                                mode='bilinear').squeeze() /
-                                                                  self.opt.max_depth)[:, :, :3] * 255, dtype=np.uint8))
+                # pred_depth_color = Image.fromarray(np.array(turbo(F.interpolate(pred_depth_t,
+                #                                                                 (height_o, width_o),
+                #                                                                 mode='bilinear').squeeze() /
+                #                                                   self.opt.max_depth)[:, :, :3] * 255, dtype=np.uint8))
 
                 if not os.path.exists(os.path.dirname(depth_save_path)):
                     os.makedirs(os.path.dirname(depth_save_path))
                 pred_depth_o.save(depth_save_path)
-                pred_depth_color.save(depth_save_path.replace('.png', '_color.png'))
-
+                img.save(depth_save_path)
+                # pred_depth_color.save(depth_save_path.replace('.png', '_color.png'))
+        total_time = time.time() - start_time
+        avg_time = total_time / cnt
+        print('avg_FPS: {}' .format(1/avg_time))
+        errors_absolute = np.array(errors_absolute).mean(0)
+        print("/n")
+        print("  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
+        print(("&{: 8.4f}  " * 7).format(*errors_absolute.tolist()) + "\\\\")
         print('time taken for network model {}-{}: {}'.format(self.opt.models_fcn_name['encoder'], self.opt.num_layers,
                                                               1 / np.mean(time_for_each_frame)))
         return None, None
