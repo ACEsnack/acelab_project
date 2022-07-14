@@ -3,7 +3,8 @@ import os
 
 
 # pcd 파일들이 담긴 폴더 경로 설정해주기
-path_dir = '/home/hepark/acelab_project/gangnam2_pcd'
+path_dir = '/home/wjh/gangnam2_pcd'
+
  
 file_list = os.listdir(path_dir)
 file_list.sort()
@@ -18,7 +19,7 @@ os.mkdir("pcds_sort")
 
 for i in range(total):
     shutil.copy(path_dir+"/"+file_list[i], "./pcds_sort")
-    os.renames("./pcds_sort/"+file_list[i], "./pcds_sort/"+file_list[i]+str(i)+".pcd")
+    os.renames("./pcds_sort/"+file_list[i], "./pcds_sort/"+str(i+1)+".pcd")
 
 
 # # 기존 디렉터리가 있으면 지워주기
