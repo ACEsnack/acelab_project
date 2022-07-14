@@ -151,3 +151,7 @@ splits/
 
 bin/
 gt/
+calib_image/
+data.npz
+pcds_sort/
+gt_list/

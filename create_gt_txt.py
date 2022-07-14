@@ -16,11 +16,12 @@ if not os.path.isdir(save_path):
 def start():
     n = 0
     file_list = os.listdir(folder_path)
-    img = f'/home/wjh/MonoDEVSNet/frame000000.png'
+    file_list = [str(i+1)+".bin" for i in  range(len(file_list))]
+    img = f'/home/wjh/MonoDEVSNet/1.png'
     for j in file_list:
         n+=1
         binary = folder_path + j
-        print(binary)
+        
         with open(f'/home/wjh/MonoDEVSNet/testing/calib/gn2.txt','r') as f:
             calib = f.readlines()
 
@@ -43,7 +44,6 @@ def start():
         cam = np.delete(cam,np.where(cam[2,:]<0)[1],axis=1)
         # get u,v,z
         cam[:2] /= cam[2,:]
-        print(cam)
         # do projection staff
         png = mpimg.imread(img)
         IMG_H,IMG_W = png.shape

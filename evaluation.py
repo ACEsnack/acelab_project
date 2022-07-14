@@ -221,7 +221,7 @@ class Evaluation(object):
 
         ###########################################3 added code ########################################
         else:
-            gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "data.npz")
+            gt_path = os.path.join(os.path.dirname(__file__), "splits", "eigen", "cali_data.npz")
             self.gt_depths = np.load(gt_path, fix_imports=True, encoding='latin1', allow_pickle=True)["data"]
 
 
@@ -279,14 +279,22 @@ class Evaluation(object):
                 plat_pred_depth = pred_depth.reshape(-1)
                 new_gt_depth = []
                 new_pred_depth = []
+
+                hitmap = np.zeros((gt_height, gt_width, 3), dtype=np.uint8)
+
                 for idx, item in enumerate(plat_gt_depth):
-                    new_gt_depth.append(item)
-                    new_pred_depth.append(plat_pred_depth[idx])
-                
+                    if item > 0.1 and item < 80:
+                        new_gt_depth.append(item)
+                        new_pred_depth.append(plat_pred_depth[idx])
+                        hitmap[idx // gt_width, idx % gt_width] = [0, plat_pred_depth[idx], 0]
+
+                img = Image.fromarray(hitmap, 'RGB')
+                img.save('mytest.png')
+                img.show()
                 # pred_depth_t[pred_depth_t < self.opt.min_depth] = self.opt.min_depth
                 # pred_depth_t[pred_depth_t > self.opt.max_depth] = self.opt.max_depth
-                # errors_absolute.append(compute_errors(np.array(new_gt_depth), np.array(new_pred_depth)))
-                errors_absolute.append(compute_errors(gt_depth, pred_depth))
+                errors_absolute.append(compute_errors(np.array(new_gt_depth), np.array(new_pred_depth)))
+                # errors_absolute.append(compute_errors(gt_depth, pred_depth))
                 errors_absolute = np.array(errors_absolute).mean(0)
                 print("/n")
                 print("  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
@@ -327,6 +335,7 @@ class Evaluation(object):
         errors_absolute, errors_relative, ratios, time_taken, time_for_each_frame, total_time = \
             [], [], [], time.time(), [], time.time()
         data_iter, total_invalid_images, iter_l = iter(self.dataloader), 0, -1
+        print("data_iter : ",data_iter,"self.dataloader : ",len(self.dataloader))
         with torch.no_grad():
             for __ in tqdm(range(self.dataloader.__len__())):
                 try:
@@ -371,7 +380,6 @@ class Evaluation(object):
                 else:
                     top_margin, left_margin = 0, 0
                     crop_height, crop_width = gt_depth.shape
-                print("!!!!!!!!!!!!!!!!!!!!!pred_depth : ",pred_depth)
                 # Eigen crop
                 mask = np.logical_and(gt_depth > self.opt.min_depth, gt_depth < self.opt.max_depth)
                 crop = np.array([0.40810811 * gt_height, 0.99189189 * gt_height,

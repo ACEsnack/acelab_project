@@ -6,8 +6,8 @@ import pandas as pd
 
 sn = int(sys.argv[1]) if len(sys.argv)>1 else 7 #default 0-7517
 name = '%06d'%sn # 6 digit zeropadding
-img = f'./frame000000.png'
-binary = f'./data.bin'
+img = f'./1.png'
+binary = f'./bin/1.bin'
 with open(f'./testing/calib/gn2.txt','r') as f:
     calib = f.readlines()
 
@@ -30,7 +30,7 @@ cam = P2 * R0_rect * Tr_velo_to_cam * velo
 cam = np.delete(cam,np.where(cam[2,:]<0)[1],axis=1)
 # get u,v,z
 cam[:2] /= cam[2,:]
-print(cam)
+# print(cam)
 # do projection staff
 plt.figure(figsize=(12,5),dpi=96,tight_layout=True)
 png = mpimg.imread(img)
@@ -46,16 +46,27 @@ outlier = np.logical_or(u_out, v_out)
 cam = np.delete(cam,np.where(outlier),axis=1)
 # generate color map from depth
 u,v,z = cam
-print(z[0].size)
+# print(z[0].size)
 gt_list = np.array([[0]*2040 for i in range(1086)])
 for i in range(z[0].size):
     if pd.isnull(z[0,i]):
-        print(z[0,i],"is nan")
+        pass
+        # print(z[0,i],"is nan")
     else:
-        gt_list[int(v[0,i])][int(u[0,i])] = z[0,i]
+        gt_list[int(v[0,i])][int(u[0,i]) ] = z[0,i]
+    
+    # else:
+    #     for x in range(5):
+    #         for y in range(5):
+    #             if  0 <= (int(v[0,i]) - 2 + x) and  (int(v[0,i]) - 2 + x) <= 1085 and 0<= (int(u[0,i]) - 2 + y) and (int(u[0,i]) - 2 + y) <= 2039:
+    #                 if gt_list[int(v[0,i]) - 2 + x ][int(u[0,i]) - 2 + y] < z[0,i] and  gt_list[int(v[0,i]) - 2 + x ][int(u[0,i]) - 2 + y] != 0:
+    #                     break
+    #                 else:
+    #                     gt_list[int(v[0,i])][int(u[0,i]) ] = z[0,i]
+
 np.savetxt('gt_list.txt',gt_list, fmt = '%2d', delimiter = ',')
 plt.scatter([u],[v],c=[z],cmap='rainbow_r',alpha=0.5,s=2)
 plt.colorbar()
 plt.title(name)
-plt.savefig(f'./data_object_image_2/testing/projection/{name}.png',bbox_inches='tight')
+# plt.savefig(f'.1.png',bbox_inches='tight')
 plt.show()
