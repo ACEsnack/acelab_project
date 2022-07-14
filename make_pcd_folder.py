@@ -4,6 +4,7 @@ import os
 
 # pcd 파일들이 담긴 폴더 경로 설정해주기
 path_dir = '/home/wjh/gangnam2_pcd'
+
  
 file_list = os.listdir(path_dir)
 file_list.sort()
